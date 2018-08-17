@@ -7,7 +7,7 @@ import numpy as np
 import torch.nn.functional as F
 
 from spec import SpecParser, TaggedDataset
-from model import create_model
+from model import create_model, Model32, Model128, Model64
 
 dtype = torch.float32 # we will be using float throughout this tutorial
 if torch.cuda.is_available():
@@ -15,7 +15,7 @@ if torch.cuda.is_available():
 else:
     device = torch.device('cpu')
 
-def check_accuracy(loader, model):    
+def check_accuracy(loader, data_name, model):    
     num_correct = 0
     num_samples = 0
     model.eval()  # set model to evaluation mode
@@ -44,9 +44,9 @@ def check_accuracy(loader, model):
         
         for line in matrix:
             for number in line:
-                print("{:3d} ".format(number), end="")
+                print("{:6d} ".format(number), end="")
             print()
-        print('Got %d / %d correct (%.2f)' % (num_correct, num_samples, 100 * acc))
+        print('%s Got %d / %d correct (%.2f)' % (data_name, num_correct, num_samples, 100 * acc))
 
 def train(loader_train, loader_val, model, optimizer, epochs=1):
     """
@@ -62,7 +62,8 @@ def train(loader_train, loader_val, model, optimizer, epochs=1):
     
     torch.cuda.empty_cache()
     model = model.to(device=device)  # move the model parameters to CPU/GPU
-    print_every = 100
+    
+    print_every = 200
 
     for e in range(epochs):
         for t, (x, y) in enumerate(loader_train):
@@ -85,10 +86,10 @@ def train(loader_train, loader_val, model, optimizer, epochs=1):
             # computed by the backwards pass.
             optimizer.step()
 
-            if t % print_every == 0:
-                print('Iteration %d, loss = %.4f' % (t, loss.item()))
-                check_accuracy(loader_train, model)
-                check_accuracy(loader_val, model)
+            if t > 0 and t % print_every == 0:
+                print('Epoch %d, Iteration %d, loss = %.4f' % (e, t, loss.item()))
+                check_accuracy(loader_train, 'trainig', model)
+                check_accuracy(loader_val, 'validation', model)
                 print()                
 
 def main():
@@ -101,18 +102,18 @@ def main():
     print('using device:', device)    
     print("total num of training sets", len(dataset))
 
-    num_train = 3000
+    num_train = int(len(dataset) * 0.97)
 
-    loader_train = DataLoader(dataset, batch_size=64, 
+    loader_train = DataLoader(dataset, batch_size=64, num_workers=4,
                           sampler=sampler.SubsetRandomSampler(range(num_train)))
 
-    loader_val = DataLoader(dataset, batch_size=64, 
+    loader_val = DataLoader(dataset, batch_size=64, num_workers=4,
                           sampler=sampler.SubsetRandomSampler(range(num_train, len(dataset))))
 
-    model = create_model()
-    optimizer = optim.Adam(model.parameters(), lr=1e-4)
+    model = Model128(6)
+    optimizer = optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-4)
 
-    train(loader_train, loader_val, model, optimizer, 50)
+    train(loader_train, loader_val, model, optimizer, 500)
 
 if __name__ == "__main__":
     main()

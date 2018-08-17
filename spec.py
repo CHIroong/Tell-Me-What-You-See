@@ -38,6 +38,8 @@ class TaggedDataset(Dataset):
             
             for patch in image["patches"]:
                 patch["image_id"] = image["id"]
+                patch["left"] = patch["left"] / image["width"]
+                patch["top"] = patch["top"] / image["height"]
 
             self.patches += image["patches"]
 
@@ -50,10 +52,10 @@ class TaggedDataset(Dataset):
         patch = self.patches[idx]
 
         img_name = os.path.join("images", str(patch["image_id"]), patch["filename"])
-        image = np.moveaxis(io.imread(img_name)[:, :, :3], -1, 0)
-        
+        image = np.moveaxis(io.imread(img_name), -1, 0)
+        image[3, 0, 0] = patch["left"] * 100
+        image[3, 0, 1] = patch["top"] * 100
+        image[3, 0, 2] = abs(50 - patch["left"] * 100) * 2
+        image[3, 0, 3] = abs(50 - patch["top"] * 100) * 2
         tags = patch["tags"]
-
-        sample = {'image': image, 'tags': tags, 'category': np.argmax(tags)}
-
         return [image, np.argmax(tags)]
