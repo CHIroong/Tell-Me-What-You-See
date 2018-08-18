@@ -11,12 +11,14 @@ class Spec:
         self.height = spec['height']
         self.data = spec["data"]
         self.tags = spec["tags"]
+        self.num_tags = len(self.tags)
 
 
 from torch.utils.data import Dataset, DataLoader
 from skimage import io, transform
 import numpy as np
 import os
+import random
 
 class TaggedDataset(Dataset):
     def __init__(self, spec):
@@ -43,6 +45,7 @@ class TaggedDataset(Dataset):
 
             self.patches += image["patches"]
 
+        random.shuffle(self.patches)
         self.num_train = num_train
 
     def __len__(self):

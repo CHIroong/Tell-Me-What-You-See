@@ -11,7 +11,7 @@ from PIL import Image
 url = sys.argv[1]
 data = json.loads(requests.get(url).text)
 
-PATCH_SIZE = 128
+PATCH_SIZE = 96
 
 rects_info = defaultdict(list)
 for rect in data["target"]:
