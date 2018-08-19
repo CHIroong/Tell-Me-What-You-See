@@ -17,7 +17,10 @@ class PatchClassifier():
             self.device = torch.device('cpu')
 
     def load(self, path):
-        self.model.load_state_dict(torch.load(path))
+        if self.use_gpu:
+            self.model.load_state_dict(torch.load(path))
+        else:
+            self.model.load_state_dict(torch.load(path, map_location='cpu'))
         self.model.to(self.device)
         self.model.eval()
     
