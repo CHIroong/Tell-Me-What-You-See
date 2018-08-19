@@ -13,13 +13,15 @@ class Sonifier:
         self.patch_size = patch_size
 
         self.image = np.moveaxis(io.imread(filename), -1, 0) # pull the rgb axis to the front
-        self.sonify(verbose)
+        self.sonify(verbose, filename)
 
 
-    def sonify(self, verbose=False):
+    def sonify(self, verbose=False, filename=""):
         tags = [0] * 6
         height, width = self.image.shape[1:3]
         verbose_temp = 0.1
+        vis = np.moveaxis(np.copy(self.image), 0, -1)
+
         for i in range(0, height-self.patch_size, self.patch_size):
             for j in range(0, width-self.patch_size, self.patch_size):
                 self.image[3, i+0, j+0] = int(j/width*100) # normalized left (0 - 100)
@@ -29,9 +31,21 @@ class Sonifier:
                 scores = self.classifier.classify_one(self.image[:,i:i+self.patch_size,j:j+self.patch_size])
                 tags[np.argmax(scores)] += 1
 
-                if verbose and verbose_temp < (width*i+j)/height/width:
-                    print(int(verbose_temp*100), "%")
-                    verbose_temp += 0.1
+                if verbose:
+                    if verbose_temp < (width*i+j)/height/width:
+                        print(int(verbose_temp*100), "%")
+                        verbose_temp += 0.1
+                    colors = np.array([
+                            [173, 181, 189, 255],
+                            [64, 192, 87, 255],
+                            [92, 124, 250, 255],
+                            [252, 196, 25, 255]
+                        ])
+                    if np.argmax(scores) < 4:
+                        vis[i:i+self.patch_size,j:j+self.patch_size,:] =  \
+                            (0.15 * vis[i:i+self.patch_size,j:j+self.patch_size,:] + \
+                            0.85 * colors[np.argmax(scores)]).astype('uint8')
+
         self.tags = {
             "text": tags[0] / sum(tags),
             "image": tags[1] / sum(tags),
@@ -40,6 +54,7 @@ class Sonifier:
             }
         if verbose:
             print(self.tags)
+            io.imsave('_'.join(filename.split('.')[:-1]) + '_vis.png', vis)
 
     def play(self):
         scale = min(10, self.image.shape[1] / 500)
