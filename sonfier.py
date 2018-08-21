@@ -42,9 +42,10 @@ class Sonifier:
                             [252, 196, 25, 255]
                         ])
                     if np.argmax(scores) < 4:
+                        confidence = np.max(scores)
                         vis[i:i+self.patch_size,j:j+self.patch_size,:] =  \
-                            (0.15 * vis[i:i+self.patch_size,j:j+self.patch_size,:] + \
-                            0.85 * colors[np.argmax(scores)]).astype('uint8')
+                            ((1-confidence) * vis[i:i+self.patch_size,j:j+self.patch_size,:] + \
+                            confidence * colors[np.argmax(scores)]).astype('uint8')
 
         self.tags = {
             "text": tags[0] / sum(tags),
