@@ -42,7 +42,7 @@ class PatchClassifier():
 if __name__ == "__main__":
     classifier = PatchClassifier()
 
-    classifier.load('models/model96.81.83.pt')
+    classifier.load('models/model96.87.47.pt')
 
     # load an image
     image = np.moveaxis(io.imread("sample.png"), -1, 0) # pull the rgb axis to the front
@@ -53,6 +53,15 @@ if __name__ == "__main__":
     image[3, 0, 2] = 100 # normalized min distance from either left or right edges (0 - 100), e.g., abs(50 - norm_left) * 2
     image[3, 0, 3] = 40 # normalized min distance from either top or bottom edges (0 - 100), e.g., abs(50 - norm_top) * 2
 
+    image[3, 0, 4] = 0 # float(patch["features"]["cursor"] == "pointer")
+    ratio = 1 # patch["features"]["aspect_ratio"]
+    if ratio >= 255:
+        ratio = 255
+    image[3, 0, 5] = ratio
+    image[3, 0, 6] = 1 # float(patch["features"]["is_img"])
+    image[3, 0, 7] = 0 # float(patch["features"]["is_iframe"])
+    image[3, 0, 8] = 4 # patch["features"]["nested_a_tags"]
+    image[3, 0, 9] = 0 # float(patch["features"]["contains_harmful_url"])
     scores = classifier.classify_one(image)
     print(scores)
 
@@ -64,6 +73,15 @@ if __name__ == "__main__":
     image2[3, 0, 2] = 100 # normalized min distance from either left or right edges (0 - 100), e.g., abs(50 - norm_left) * 2
     image2[3, 0, 3] = 40 # normalized min distance from either top or bottom edges (0 - 100), e.g., abs(50 - norm_top) * 2
 
+    image2[3, 0, 4] = 0 # float(patch["features"]["cursor"] == "pointer")
+    ratio = 1 # patch["features"]["aspect_ratio"]
+    if ratio >= 255:
+        ratio = 255
+    image2[3, 0, 5] = ratio
+    image2[3, 0, 6] = 1 # float(patch["features"]["is_img"])
+    image2[3, 0, 7] = 0 # float(patch["features"]["is_iframe"])
+    image2[3, 0, 8] = 4 # patch["features"]["nested_a_tags"]
+    image2[3, 0, 9] = 0 # float(patch["features"]["contains_harmful_url"])
     images = np.stack([image, image2], axis=0)
 
     scores = classifier.classify_all(images)

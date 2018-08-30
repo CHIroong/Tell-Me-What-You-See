@@ -54,11 +54,49 @@ class TaggedDataset(Dataset):
     def __getitem__(self, idx):
         patch = self.patches[idx]
 
-        img_name = os.path.join("images", str(patch["image_id"]), patch["filename"])
+        img_name = os.path.join("patches", str(patch["image_id"]), patch["filename"])
         image = np.moveaxis(io.imread(img_name), -1, 0)
         image[3, 0, 0] = patch["left"] * 100
         image[3, 0, 1] = patch["top"] * 100
         image[3, 0, 2] = abs(50 - patch["left"] * 100) * 2
         image[3, 0, 3] = abs(50 - patch["top"] * 100) * 2
+
+        image[3, 0, 4] = float(patch["features"]["cursor"] == "pointer")
+        ratio = patch["features"]["aspect_ratio"]
+        if ratio >= 255:
+            ratio = 255
+        image[3, 0, 5] = ratio
+        image[3, 0, 6] = float(patch["features"]["is_img"])
+        image[3, 0, 7] = float(patch["features"]["is_iframe"])
+        image[3, 0, 8] = patch["features"]["nested_a_tags"]
+        image[3, 0, 9] = float(patch["features"]["contains_harmful_url"])
         tags = patch["tags"]
         return [image, np.argmax(tags)]
+
+
+"""
+ "patches": [
+                {
+                    "filename": "0x0.png",
+                    "left": 0,
+                    "top": 0,
+                    "right": 95,
+                    "bottom": 95,
+                    "tags": [
+                        0.0,
+                        0.0,
+                        0,
+                        0.0,
+                        0,
+                        1.0
+                    ],
+                    "features": {
+                        "cursor": "auto",
+                        "aspect_ratio": 11.900826446280991,
+                        "is_img": false,
+                        "is_iframe": false,
+                        "nested_a_tags": 0,
+                        "contains_harmful_url": false
+                    }
+                },
+                """

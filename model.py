@@ -125,7 +125,7 @@ class Model96(nn.Module):
 
         self.pool2 = nn.MaxPool2d(2, stride=2)
         
-        self.fc1 = nn.Linear(24 * 24 * 32 + 4, 1000)
+        self.fc1 = nn.Linear(24 * 24 * 32 + 10, 1000)
         self.fc2 = nn.Linear(1000, num_classes)
 
         nn.init.kaiming_normal_(self.conv1.weight)
@@ -138,7 +138,7 @@ class Model96(nn.Module):
     def forward(self, image):
 
         scores = image[:, :3, :, :].contiguous()
-        pos = image[:, 3, 0, :4]
+        pos = image[:, 3, 0, :10]
 
         #scores = self.pool1(F.relu(self.conv1_2(self.batch1_2(F.relu(self.conv1(self.batch1(scores)))))))
         #scores = self.pool2(F.relu(self.conv2_2(self.batch2_2(F.relu(self.conv2(self.batch2(scores)))))))
