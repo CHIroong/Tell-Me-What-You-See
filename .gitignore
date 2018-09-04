@@ -114,3 +114,7 @@ patches_40_(2).zip
 raw_images
 raw_images/
 patches
+*.wav
+*.mp3
+patches
+sample_patches
