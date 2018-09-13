@@ -1,11 +1,13 @@
+import os
+
 import torch
 import numpy as np
-from model import Model32, Model64, Model96, Model128
-import os
 from skimage import io
 
+from classifier.model import Model32, Model64, Model96, Model128
+
 class PatchClassifier():
-    def __init__(self, patch_size=96, num_tags=6, use_gpu=True):
+    def __init__(self, patch_size=96, num_tags=6, use_gpu=True, load_default_model=True):
         self.patch_size = patch_size
         self.num_tags = num_tags        
         
@@ -15,6 +17,9 @@ class PatchClassifier():
             self.device = torch.device('cuda')
         else:
             self.device = torch.device('cpu')
+        
+        if load_default_model:
+            self.load('classifier/models/model96.87.47.pt')
 
     def load(self, path):
         if self.use_gpu:

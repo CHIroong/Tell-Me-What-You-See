@@ -118,3 +118,6 @@ patches
 *.mp3
 patches
 sample_patches
+data
+final_result_*
+results_*

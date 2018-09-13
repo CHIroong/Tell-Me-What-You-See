@@ -7,8 +7,8 @@ import numpy as np
 import torch.nn.functional as F
 import os
 
-from spec import SpecParser, TaggedDataset
-from model import Model32, Model64, Model96, Model128
+from classifier.spec import SpecParser, TaggedDataset
+from classifier.model import Model32, Model64, Model96, Model128
 
 patch_size = 96
 num_workers = 4 # workers for parallel loading
