@@ -21,18 +21,19 @@ class Sonifier:
             self.doc_features.append(data["doc_features"])
             folder = root + ('%s/' % data["id"])
             width, height = data["width"], data["height"]
-            tags = [0] * 6
             verbose_temp = 0.1
+            aggregated_tags = { "text": 0, "image": 0, "graph": 0, "ad": 0 }
+            num_patch = len(data["patches"])
             for patch in data["patches"]:
                 tags = patch["tags"]
-                self.tags.append({
-                    "text": tags[0] / sum(tags),
-                    "image": tags[1] / sum(tags),
-                    "graph": tags[2] / sum(tags),
-                    "ad": tags[3] / sum(tags),
-                    })
+                aggregated_tags["text"] += tags[0] / num_patch
+                aggregated_tags["image"] += tags[1] / num_patch
+                aggregated_tags["graph"] += tags[2] / num_patch
+                aggregated_tags["ad"] += tags[3] / num_patch
+            self.tags.append(aggregated_tags)
 
-    def generate_glance_wav(self, data_id, output_filename):
+    def generate_glance_mp3(self, data_id, output_filename):
+        self.save_tts_mp3("구성요소 비율", "glance_temp.mp3", 1.5)
         scale = min(5, self.spec["data"][data_id]["height"] / 1500)
         duration_text = self.tags[data_id]["text"] * scale
         duration_image = (self.tags[data_id]["image"] + self.tags[data_id]["graph"]) * scale
@@ -51,6 +52,10 @@ class Sonifier:
         sr.append_silence(duration_milliseconds=200)
         sr.save_wav(output_filename)
 
+        glance_0 = AudioSegment.from_mp3("glance_temp.mp3")
+        glance_1 = AudioSegment.from_wav(output_filename)
+        (glance_0 + glance_1).export(output_filename, format="mp3")
+
     def generate_keywords_mp3(self, data_id, output_filename):
         sentence = " ".join(self.doc_features[data_id]["keywords"])
         self.save_tts_mp3(sentence, output_filename, 1.5)
@@ -67,13 +72,13 @@ class Sonifier:
     def generate_defaults_mp3(self, data_id, output_filename):
         doc_feature = self.doc_features[data_id]
         title = doc_feature['title']
-        navs = " ".join(doc_feature['navs']) if len(doc_features['navs']) > 0 else "이 없습니다."
+        navs = " ".join(doc_feature['navs']) if len(doc_feature['navs']) > 0 else "이 없습니다."
         headers = " ".join(doc_feature['headers'][:5]) if len(doc_feature['headers']) > 0 else "가 없습니다."
         sentence = f"페이지 제목 {title} 네비게이션 {navs} 헤더 {headers}"
         self.save_tts_mp3(sentence, output_filename, 1.5)
 
     def generate_merged_sg_mp3(self, glance_filename, keyword_filename, default_filename, output_filename):
-        glance = AudioSegment.from_wav(glance_filename)
+        glance = AudioSegment.from_mp3(glance_filename)
         keyword = AudioSegment.from_mp3(keyword_filename)
         default = AudioSegment.from_mp3(default_filename)
         (glance + keyword + default)[:15*1000].export(output_filename, format="mp3")
