@@ -10,6 +10,7 @@
 ## Design
 
 SoundGlance의 15초 미리보기는 다음과 같은 세 구성요소로 이루어져 있습니다.
+[example files](https://github.com/SoundGlance/SoundGlance.github.io/tree/master/audio)
 
 ### 1. 텍스트, 이미지, 광고 비율
 
